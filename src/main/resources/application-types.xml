@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="data_json" format="json">
+      <types:shape format="weave" example="examples/ass1.json"><![CDATA[%dw 2.0
+
+type data_json = {|
+  id: Number {"typeId": "int"}, 
+  employee_name: String, 
+  employee_salary: Number {"typeId": "int"}, 
+  employee_age: Number {"typeId": "int"}, 
+  profile_image: String
+|} {"example": "{\\\"id\\\":1,\\\"employee_name\\\":\\\"hello\\\",\\\"employee_salary\\\":4544,\\\"employee_age\\\":56,\\\"profile_image\\\":\\\"dhjxc\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#013ca24b-b191-4e3c-9471-820841c44129">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="data_json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

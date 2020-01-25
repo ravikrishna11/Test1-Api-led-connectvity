@@ -1,0 +1,16 @@
+#%RAML 1.0
+version: v1
+title: Employee API
+
+types:
+  Employee: !include /EmpdataType.raml
+
+/empdetails:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: Employee
+            examples:
+              output: !include /EmpExample.raml

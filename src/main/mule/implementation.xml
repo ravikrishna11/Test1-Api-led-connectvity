@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<flow name="GetEmployeeDetails" doc:id="1dcf2c19-6253-42e4-ab34-a587de8ebe7f" >
+		<http:request method="GET" doc:name="Request" doc:id="24c84926-d0ae-4165-bdb7-cf8b6b3d4fe7" path="/api/v1/employees" config-ref="HTTP_Request_configuration"/>
+		<ee:transform doc:name="Transform Message" doc:id="cd52eb41-4e0d-4058-8ac7-8ad6c7931b0a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="InsertingRecordsIntoDB" doc:id="950ef5a2-815c-467d-ab58-53d8996f1923" name="InsertingRecordsIntoDB"/>
+	</flow>
+	<flow name="InsertingRecordsIntoDB" doc:id="aa6240cb-aab5-49fe-985a-cd0a200f701f" >
+		<ee:transform doc:name="Transform Message" doc:id="987a280d-d18f-4f77-89d6-df4d7203f7f0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="implementationBatch_Job" doc:id="8a99fc9f-b454-4593-9d96-ed1b7cac6c56" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="7364b6f6-96c5-41e0-86f9-fff18c20c08c" >
+					<logger level="INFO" doc:name="Logger" doc:id="642aa0bb-8987-4120-b8b7-5b124a4040f2" message="payload is #[payload]"/>
+					<db:insert doc:name="Insert" doc:id="8508d73f-f1bc-494b-8a4a-76e79bd14f5b" config-ref="Database_Config">
+						<db:sql >insert into emp_details(id,employee_name,employee_salary,employee_age,profile_image)values(:id,:employee_name,:employee_salary,:employee_age,:profile_image)</db:sql>
+						<db:input-parameters ><![CDATA[#[{ 
+  id: payload.id,
+  employee_name: payload.employee_name,
+  employee_salary: payload.employee_salary,
+  employee_age: payload.employee_age,
+  profile_image: payload.profile_image
+}]]]></db:input-parameters>
+					</db:insert>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="d142756c-28df-41d5-a5c3-21b928c3dc40" message="payload from on complete is #[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
